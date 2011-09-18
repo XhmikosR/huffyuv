@@ -463,7 +463,7 @@ loop0:
 	jb	loop0
 
 	mov	ecx,[ebp+8+4]	; recopy first group of four, just for consistency with other compression methods
-	movd	[ecx],mm3
+	movd	dword ptr [ecx],mm3
 
 	; do the remaining rows
 	mov	ecx,[ebp+12+4]
@@ -849,8 +849,8 @@ YUV2RGB_INNER_LOOP	MACRO	uyvy,rgb32,no_next_pixel
 ;; to the "second pipe" are indented an extra space.  There's almost no
 ;; overlap, except at the end and in the two lines marked ***.
 
-	movd		mm0,[esi]
-	 movd		 mm5,[esi+4]
+	movd		mm0,dword ptr [esi]
+	 movd		 mm5,dword ptr [esi+4]
 	movq		mm1,mm0
 	GET_Y		mm0,&uyvy	; mm0 = __________Y1__Y0
 	 movq		 mm4,mm5
@@ -859,7 +859,7 @@ YUV2RGB_INNER_LOOP	MACRO	uyvy,rgb32,no_next_pixel
 	movq		mm2,mm5		; *** avoid reload from [esi+4]
 	 GET_UV		 mm5,&uyvy
 	psubw		mm0,[edx+ofs_x0000_0000_0010_0010]
-	 movd		 mm6,[esi+8-4*(no_next_pixel)]
+	 movd		 mm6,dword ptr [esi+8-4*(no_next_pixel)]
 	GET_UV		mm2,&uyvy	; mm2 = __________V2__U2
 	 psubw		 mm4,[edx+ofs_x0000_0000_0010_0010]
 	paddw		mm2,mm1
@@ -931,21 +931,21 @@ ENDIF
 	 packuswb	 mm4,mm6
 
 IF &rgb32
-	movd	[edi-16],mm0	; store the quadwords independently
-	 movd	 [edi-8],mm4	; (and in pieces since we may not be aligned)
+	movd	dword ptr [edi-16],mm0	; store the quadwords independently
+	 movd	 dword ptr [edi-8],mm4	; (and in pieces since we may not be aligned)
 	psrlq	mm0,32
 	 psrlq	 mm4,32
-	movd	[edi-12],mm0
-	 movd	 [edi-4],mm4
+	movd	dword ptr [edi-12],mm0
+	 movd	 dword ptr [edi-4],mm4
 ELSE
 	psrlq	mm0,8		; pack the two quadwords into 12 bytes
 	psllq	mm4,8		; (note: the two shifts above leave
-	movd	[edi-12],mm0	; mm0,4 = __RRGGBBrrggbb__)
+	movd	dword ptr [edi-12],mm0	; mm0,4 = __RRGGBBrrggbb__)
 	psrlq	mm0,32
 	por	mm4,mm0
-	movd	[edi-8],mm4
+	movd	dword ptr [edi-8],mm4
 	psrlq	mm4,32
-	movd	[edi-4],mm4
+	movd	dword ptr [edi-4],mm4
 ENDIF
 
 	ENDM
