@@ -1,0 +1,54 @@
+;
+; Huffyuv AVI lossless video codec
+;
+; Copyright (c) 2000 Ben Rudiak-Gould
+;
+; This Windows 9x Installation INF File by Rainbow Software
+;
+[version]
+signature="$CHICAGO$"
+
+[DefaultInstall]
+CopyFiles=HUF.Files.Inf,HUF.Files.Dll
+AddReg=HUF.Reg
+UpdateInis=HUF.INIs
+
+[DefaultUnInstall]
+DelFiles=HUF.Files.Dll,HUF.Files.Inf,HUF.Files.Ini
+DelReg=HUF.Reg
+UpdateInis=HUF.INIs.Del
+
+[SourceDisksNames]
+1="Huffyuv AVI lossless video codec","",1
+
+[SourceDisksFiles]
+HUFFYUV.INF=1
+
+[DestinationDirs]
+HUF.Files.Inf=17
+HUF.Files.Dll=11
+HUF.Files.Ini=25
+
+[HUF.Files.Inf]
+HUFFYUV.INF
+
+[HUF.Files.Dll]
+HUFFYUV.DLL
+
+[HUF.Files.Ini]
+HUFFYUV.INI
+
+[HUF.Reg]
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,Description,,"Huffyuv lossless codec [HFYU]"
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,Driver,,"huffyuv.dll"
+HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,FriendlyName,,"Huffyuv lossless codec [HFYU]"
+
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV,DisplayName,,"Huffyuv AVI lossless video codec (Remove Only)"
+HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV,UninstallString,,"rundll.exe setupx.dll,InstallHinfSection DefaultUninstall 132 %17%\HUFFYUV.INF"
+
+[HUF.INIs]
+system.ini, drivers32,, "VIDC.HFYU=huffyuv.dll"
+
+[HUF.INIs.Del]
+system.ini, drivers32, "VIDC.HFYU=huffyuv.dll"
