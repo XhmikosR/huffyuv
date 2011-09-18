@@ -1,12 +1,10 @@
-;
 ; Huffyuv AVI lossless video codec
 ;
 ; Copyright (c) 2000 Ben Rudiak-Gould
 ;
-; This Windows 9x Installation INF File by Rainbow Software
-;
+; Modified by XhmikosR, 2011
 [version]
-signature="$CHICAGO$"
+Signature="$Windows NT$"
 
 [DefaultInstall]
 CopyFiles=HUF.Files.Inf,HUF.Files.Dll
@@ -22,7 +20,7 @@ UpdateInis=HUF.INIs.Del
 1="Huffyuv AVI lossless video codec","",1
 
 [SourceDisksFiles]
-HUFFYUV.INF=1
+Huffyuv.inf=1
 
 [DestinationDirs]
 HUF.Files.Inf=17
@@ -30,22 +28,29 @@ HUF.Files.Dll=11
 HUF.Files.Ini=25
 
 [HUF.Files.Inf]
-HUFFYUV.INF
+huffyuv.inf
 
 [HUF.Files.Dll]
-HUFFYUV.DLL
+huffyuv.dll
 
 [HUF.Files.Ini]
-HUFFYUV.INI
+huffyuv.ini
 
 [HUF.Reg]
-HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,Description,,"Huffyuv lossless codec [HFYU]"
-HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,Driver,,"huffyuv.dll"
-HKLM,SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU,FriendlyName,,"Huffyuv lossless codec [HFYU]"
+HKLM,"SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU","Description",,"Huffyuv lossless codec [HFYU]"
+HKLM,"SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU","Driver",,"huffyuv.dll"
+HKLM,"SYSTEM\CurrentControlSet\Control\MediaResources\icm\VIDC.HFYU","FriendlyName",,"Huffyuv lossless codec [HFYU]"
 
-HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV
-HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV,DisplayName,,"Huffyuv AVI lossless video codec (Remove Only)"
-HKLM,Software\Microsoft\Windows\CurrentVersion\Uninstall\HUFFYUV,UninstallString,,"rundll.exe setupx.dll,InstallHinfSection DefaultUninstall 132 %17%\HUFFYUV.INF"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","DisplayName",0,"Huffyuv AVI lossless video codec"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","DisplayVersion",0,"2.1.1.0"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","EstimatedSize",0x10001,"62"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","MajorVersion",0x10001,2
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","MinorVersion",0x10001,1
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","NoModify",0x10001,1
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","NoRepair",0x10001,1
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","Publisher",0,"Ben Rudiak-Gould"
+HKLM,"Software\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv","UninstallString",0,"rundll32.exe setupapi.dll,InstallHinfSection DefaultUninstall 132 %17%\Huffyuv.inf"
 
 [HUF.INIs]
 system.ini, drivers32,, "VIDC.HFYU=huffyuv.dll"
