@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -7,21 +7,18 @@
 //
 // Generated from the TEXTINCLUDE 2 resource.
 //
-#include "winres.h"
+#include "winresrc.h"
 
 /////////////////////////////////////////////////////////////////////////////
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
-#endif //_WIN32
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -44,18 +41,15 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "See http://www.math.berkeley.edu/~benrg/huffyuv.html\0"
-            VALUE "CompanyName", "Disappearing Inc.\0"
-            VALUE "FileDescription", "Huffyuv lossless video codec\0"
-            VALUE "FileVersion", "2.1.1\0"
-            VALUE "InternalName", "Huffyuv\0"
-            VALUE "LegalCopyright", "Copyright © 2000 Ben Rudiak-Gould.\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "huffyuv.dll\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "Huffyuv\0"
-            VALUE "ProductVersion", "2.1.1\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "Comments", "See http://www.math.berkeley.edu/~benrg/huffyuv.html"
+            VALUE "CompanyName", "Disappearing Inc."
+            VALUE "FileDescription", "Huffyuv lossless video codec"
+            VALUE "FileVersion", "2.1.1"
+            VALUE "InternalName", "Huffyuv"
+            VALUE "LegalCopyright", "Copyright © 2000 Ben Rudiak-Gould."
+            VALUE "OriginalFilename", "huffyuv.dll"
+            VALUE "ProductName", "Huffyuv"
+            VALUE "ProductVersion", "2.1.1"
         END
     END
     BLOCK "VarFileInfo"
@@ -64,8 +58,6 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -73,18 +65,18 @@ END
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""winres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "\r\n"
     "\0"
@@ -98,51 +90,42 @@ END
 // Dialog
 //
 
-IDD_ABOUT DIALOG DISCARDABLE  0, 0, 167, 55
-STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUT DIALOG 0, 0, 167, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Huffyuv v2.1.1"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,131,34,29,14
-    CTEXT           "Huffyuv v2.1.1,\nCopyright 2000 Ben Rudiak-Gould.",
-                    IDC_STATIC,7,7,153,25,SS_NOPREFIX
+    CTEXT           "Huffyuv v2.1.1,\nCopyright 2000 Ben Rudiak-Gould.",IDC_STATIC,7,7,153,25,SS_NOPREFIX
     PUSHBUTTON      "Email author",IDC_EMAIL,7,34,50,14
     PUSHBUTTON      "Visit home page",IDC_HOMEPAGE,59,34,58,14
 END
 
-IDD_CONFIGURE DIALOG DISCARDABLE  0, 0, 245, 220
-STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_CONFIGURE DIALOG 0, 0, 245, 220
+STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Huffyuv configuration dialog"
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "&YUY2 compression method:",IDC_STATIC,7,8,88,8
-    COMBOBOX        IDC_YUY2METHOD,7,19,111,80,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
+    COMBOBOX        IDC_YUY2METHOD,7,19,111,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "&RGB compression method:",IDC_STATIC,127,8,85,8
-    COMBOBOX        IDC_RGBMETHOD,127,19,111,80,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_RGBMETHOD,127,19,111,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "&Always suggest RGB format for output",IDC_RGBOUTPUT,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,89,143,10
     CONTROL         "E&nable RGBA (RGB with alpha) compression",IDC_RGBA,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,144,157,10
-    CONTROL         "&Swap fields on decompress (for people with broken capture drivers)",
-                    IDC_SWAPFIELDS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,
-                    162,227,10
-    CONTROL         "&Enable console-window logging (useful for debugging)",
-                    IDC_LOG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,180,191,
-                    10
+    CONTROL         "&Swap fields on decompress (for people with broken capture drivers)",IDC_SWAPFIELDS,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,162,227,10
+    CONTROL         "&Enable console-window logging (useful for debugging)",IDC_LOG,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,180,191,10
     PUSHBUTTON      "Email author",IDC_EMAIL,7,199,50,14
     PUSHBUTTON      "Visit home page",IDC_HOMEPAGE,59,199,58,14
     DEFPUSHBUTTON   "OK",IDOK,135,199,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,188,199,50,14
-    LTEXT           """Convert to YUY2"" compresses much better than any other RGB option.  However, this conversion is slightly lossy--the original RGB data cannot be recovered exactly (not that it usually matters).  All other compression methods are lossless.",
-                    IDC_STATIC,7,40,231,35
-    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,80,
-                    231,1
-    LTEXT           "If Huffyuv doesn't seem to work in a specific application, enabling this option will often help.  Please inform me of all such problems, even if this option seems to fix them.",
-                    IDC_STATIC,7,103,231,28
-    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,135,
-                    231,1
+    LTEXT           """Convert to YUY2"" compresses much better than any other RGB option.  However, this conversion is slightly lossy--the original RGB data cannot be recovered exactly (not that it usually matters).  All other compression methods are lossless.",IDC_STATIC,7,40,231,35
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,80,231,1
+    LTEXT           "If Huffyuv doesn't seem to work in a specific application, enabling this option will often help.  Please inform me of all such problems, even if this option seems to fix them.",IDC_STATIC,7,103,231,28
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,135,231,1
 END
 
 
@@ -152,7 +135,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUT, DIALOG
     BEGIN
@@ -172,7 +155,7 @@ BEGIN
 END
 #endif    // APSTUDIO_INVOKED
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 

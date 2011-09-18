@@ -2,6 +2,7 @@
 // Microsoft Developer Studio generated include file.
 // Used by huffyuv.rc
 //
+#define IDC_STATIC                      -1
 #define IDD_ABOUT                       101
 #define IDD_CONFIGURE                   102
 #define IDC_HOMEPAGE                    1000
