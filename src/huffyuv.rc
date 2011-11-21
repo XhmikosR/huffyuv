@@ -44,7 +44,7 @@ BEGIN
             VALUE "Comments", "See http://www.math.berkeley.edu/~benrg/huffyuv.html"
             VALUE "CompanyName", "Disappearing Inc."
             VALUE "FileDescription", "Huffyuv lossless video codec"
-            VALUE "FileVersion", "2.1.1"
+            VALUE "FileVersion", "2.1.1 - CCESP Patch v0.2.5"
             VALUE "InternalName", "Huffyuv"
             VALUE "LegalCopyright", "Copyright © 2000 Ben Rudiak-Gould."
             VALUE "OriginalFilename", "huffyuv.dll"
@@ -96,36 +96,41 @@ CAPTION "Huffyuv v2.1.1"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,131,34,29,14
-    CTEXT           "Huffyuv v2.1.1,\nCopyright 2000 Ben Rudiak-Gould.",IDC_STATIC,7,7,153,25,SS_NOPREFIX
+    CTEXT           "Huffyuv v2.1.1 - CCESP Patch v0.2.5,\nCopyright 2000 Ben Rudiak-Gould.",IDC_STATIC,7,7,153,25,SS_NOPREFIX
     PUSHBUTTON      "Email author",IDC_EMAIL,7,34,50,14
     PUSHBUTTON      "Visit home page",IDC_HOMEPAGE,59,34,58,14
 END
 
-IDD_CONFIGURE DIALOG 0, 0, 245, 220
+IDD_CONFIGURE DIALOGEX 0, 0, 245, 162
 STYLE DS_SETFONT | DS_MODALFRAME | DS_CENTER | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Huffyuv configuration dialog"
-FONT 8, "MS Sans Serif"
+FONT 8, "MS Sans Serif", 0, 0, 0x0
 BEGIN
-    LTEXT           "&YUY2 compression method:",IDC_STATIC,7,8,88,8
     COMBOBOX        IDC_YUY2METHOD,7,19,111,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "&RGB compression method:",IDC_STATIC,127,8,85,8
     COMBOBOX        IDC_RGBMETHOD,127,19,111,80,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_FIELDTHRESHOLD,61,40,42,57,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "&Ignore is-interlaced flag",IDC_IGNORE_IFLAG,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,140,42,98,10
     CONTROL         "&Always suggest RGB format for output",IDC_RGBOUTPUT,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,89,143,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,63,143,10
+    CONTROL         "Ena&ble full size output-buffer (might fix crashing)",IDC_FULL_SIZE_BUFFER,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,84,231,10
     CONTROL         "E&nable RGBA (RGB with alpha) compression",IDC_RGBA,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,144,157,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,98,157,10
     CONTROL         "&Swap fields on decompress (for people with broken capture drivers)",IDC_SWAPFIELDS,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,162,227,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,112,227,10
     CONTROL         "&Enable console-window logging (useful for debugging)",IDC_LOG,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,180,191,10
-    PUSHBUTTON      "Email author",IDC_EMAIL,7,199,50,14
-    PUSHBUTTON      "Visit home page",IDC_HOMEPAGE,59,199,58,14
-    DEFPUSHBUTTON   "OK",IDOK,135,199,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,188,199,50,14
-    LTEXT           """Convert to YUY2"" compresses much better than any other RGB option.  However, this conversion is slightly lossy--the original RGB data cannot be recovered exactly (not that it usually matters).  All other compression methods are lossless.",IDC_STATIC,7,40,231,35
-    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,80,231,1
-    LTEXT           "If Huffyuv doesn't seem to work in a specific application, enabling this option will often help.  Please inform me of all such problems, even if this option seems to fix them.",IDC_STATIC,7,103,231,28
-    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,135,231,1
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,126,191,10
+    DEFPUSHBUTTON   "OK",IDOK,135,143,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,188,143,50,14
+    PUSHBUTTON      "Email author",IDC_EMAIL,7,143,50,14
+    PUSHBUTTON      "Visit home page",IDC_HOMEPAGE,59,143,58,14
+    LTEXT           "&YUY2 compression method:",IDC_STATIC,7,8,88,8
+    LTEXT           "&RGB compression method:",IDC_STATIC,127,8,85,8
+    LTEXT           "&Field Threshold:",IDC_STATIC_FIELD,7,42,52,10
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,36,231,1
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,78,231,1
+    LTEXT           "lines",IDC_STATIC,108,42,15,10
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME | SS_SUNKEN,7,57,231,1
 END
 
 
@@ -150,10 +155,32 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 238
         TOPMARGIN, 7
-        BOTTOMMARGIN, 213
+        BOTTOMMARGIN, 157
+        HORZGUIDE, 52
+        HORZGUIDE, 57
     END
 END
 #endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDS_TIP_METHOD_YUY2     "- Predict left is the fastest method but results in big files.\n- Predict gradient is a bit slower, but creates smaller files.\n- Predict median compresses best at the cost of being very slow.\n\nNote: Predict median is _really_ slow on decompression.\n  If you are going to do multi-pass encodes and have lots of hdd space,\n  use predict gradient or left. Both have a similiar decompression speed."
+    IDS_TIP_METHOD_RGB      "'Convert to YUY2' compresses much better than any other RGB option.\nHowever, this conversion is slightly lossy - the original RGB data cannot be recovered exactly (not that it usually matters).\nAll other compression methods are lossless."
+    IDS_TIP_FIELD_THRESHOLD "Video with more than <threshold> lines will be processed interlaced by Huffyuv. The default value (used in older versions) is 288.\n \nWarning: Decompressing a interlaced video with a higher current\n\t  threshold (so that huffyuv will not use field processing) will fail!\n\t  The setting is stored in the ini-file, not in the video!"
+    IDS_TIP_RGB_ONLY        "If Huffyuv doesn't seem to work in a specific application, enabling this option will often help.\n\nIt forces Huffyuv to accept only RGB as output format. This might result in slower perfomance if the source is compressed YUY2, though.\n\nPlease inform me of all such problems, even if this option seems to fix them."
+    IDS_TIP_RGBA_COMPR      "Huffyuv can compress RGBA (RGB with alpha) images along with RGB and YUY2.\n\nThe problem is that the format that applications like Adobe After Effects use for RGBA happens to be exactly the same as ordinary 32-bit RGB.\nIf RGBA compression is enabled by default, an innocent application might pass 32-bit RGB to Huffyuv, in which case Huffyuv would waste a bunch of space compressing the unused alpha channel.\n\nMost people don't need RGBA compression, so this is an option."
+    IDS_TIP_SWAPFIELDS      "Some capture drivers are broken and get the field order backwards.\nIf you're stuck with one of these, you can compensate by checking this option."
+    IDS_TIP_LOG             "If checked, Huffyuv will open a console window whenever it's used and display various diagnostic messages. This makes it easier for me to troubleshoot problems via email."
+    IDS_TIP_FULL_SIZE_BUFFER 
+                            "If you experience strange crashes when capturing\n(e.g. with avi_io or Virtualdub), enabling this option might help.\nIf enabled, the size of Huffyuv's output buffer is increased to the theoretical maximum size of uncompressable data.\n\nThis 'worst-case' scenario includes 43bpp for YUY2 and 51bpp for RGB data. The old value was 24bpp/40bpp for YUY2/RGB.\n\nI don't know if using a bigger buffer impacts performance or not. If you don't have frames consisting of random/white noise in your video, disabling this option is a good idea."
+    IDS_TIP_IGNORE_IFLAG    "If you are using files that were created with patch version 0.2.4 or other unknown huffyuv derivates that store the interlace setting differently, you can disable the usage of the interlace setting that is stored in the file with this switch."
+END
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

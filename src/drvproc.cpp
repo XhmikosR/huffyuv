@@ -158,6 +158,10 @@ LRESULT PASCAL DriverProc(DWORD dwDriverID, HDRVR hDriver, UINT uiMessage, LPARA
     case ICM_DECOMPRESS_QUERY:
       return pi->DecompressQuery((LPBITMAPINFOHEADER)lParam1, (LPBITMAPINFOHEADER)lParam2);
 
+    // ICM_DECOMPRESSEX_QUERY for ccesp added by wanton, correct parameter-handling added by bastel
+	case ICM_DECOMPRESSEX_QUERY:
+      return pi->DecompressQuery(((ICDECOMPRESSEX*)lParam1)->lpbiSrc, ((ICDECOMPRESSEX*)lParam1)->lpbiDst);
+
     case ICM_DECOMPRESS_BEGIN:
       return pi->DecompressBegin((LPBITMAPINFOHEADER)lParam1, (LPBITMAPINFOHEADER)lParam2);
 

@@ -21,8 +21,11 @@
 
 #include <crtdbg.h>
 
+#include <stdio.h>
 
-TCHAR szDescription[] = TEXT("Huffyuv v2.1.1");
+#include <commctrl.h>
+
+TCHAR szDescription[] = TEXT("Huffyuv v2.1.1 - CCESP Patch v0.2.5"); // Wanton, bastel
 TCHAR szName[]        = TEXT("Huffyuv");
 
 #define VERSION         0x00020001      // 2.1
@@ -86,6 +89,9 @@ int AppFlags() {
         flags = 1;
       if (!lstrcmpi(appname, TEXT("afterfx.exe")))
         flags = 2;
+	  // new flag for ccesp/ccesp trial for buggy YUY2 handling - bastel
+      if (!lstrcmpi(appname, TEXT("cctsp.exe")) || !lstrcmpi(appname, TEXT("cctspt.exe")))
+		flags = 4;
       Msg("flags=%d\n", flags);
     }
   }
@@ -98,6 +104,11 @@ bool SuggestRGB() {
 
 bool AllowRGBA() {
   return !!GetPrivateProfileInt("general", "enable_rgba", AppFlags()&2, "huffyuv.ini");
+}
+
+// ignore top-down (i.e. negative height) - bastel
+bool IgnoreTopDown() {
+  return !!GetPrivateProfileInt("debug", "ignore_topdown", AppFlags()&4, "huffyuv.ini");
 }
 
 
@@ -171,6 +182,28 @@ MethodName rgb_method_names[] = {
   { methodConvertToYUY2, "<-- Convert to YUY2" }
 };
 
+MethodName field_thresholds[] = {
+	{ 240, "240" },
+	{ 288, "288" },
+	{ 480, "480" },
+	{ 576, "576" }
+};
+
+struct { UINT item; UINT tip; } item2tip[] = {
+	{ IDC_YUY2METHOD,		IDS_TIP_METHOD_YUY2		},
+	{ IDC_RGBMETHOD,		IDS_TIP_METHOD_RGB		},
+	{ IDC_FIELDTHRESHOLD,	IDS_TIP_FIELD_THRESHOLD	},
+	{ IDC_STATIC_FIELD,		IDS_TIP_FIELD_THRESHOLD	},
+	{ IDC_RGBOUTPUT,		IDS_TIP_RGB_ONLY		},
+	{ IDC_RGBA,				IDS_TIP_RGBA_COMPR		},
+	{ IDC_SWAPFIELDS,		IDS_TIP_SWAPFIELDS		},
+	{ IDC_LOG,				IDS_TIP_LOG				},
+	{ IDC_FULL_SIZE_BUFFER,	IDS_TIP_FULL_SIZE_BUFFER},
+	{ IDC_IGNORE_IFLAG,     IDS_TIP_IGNORE_IFLAG    },
+	{ 0,0 }
+};
+
+
 bool IsLegalMethod(int method, bool rgb) {
   if (rgb) {
     return (method == methodOld || method == methodLeft
@@ -209,6 +242,70 @@ DWORD CodecInst::About(HWND hwnd) {
   return ICERR_OK;
 }
 
+
+// add a tooltip to a tooltip control, might be buggy, though - bastel
+int AddTooltip(HWND tooltip, HWND client, UINT stringid)
+{
+	HINSTANCE ghThisInstance=(HINSTANCE)GetWindowLong(client, GWL_HINSTANCE);
+
+	TOOLINFO				ti;			// struct specifying info about tool in tooltip control
+    static unsigned int		uid	= 0;	// for ti initialization
+	RECT					rect;		// for client area coordinates
+	TCHAR					buf[2000];	// a static buffer is sufficent, TTM_ADDTOOL seems to copy it
+
+	// load the string manually, passing the id directly to TTM_ADDTOOL truncates the message :(
+	if ( !LoadString(ghThisInstance, stringid, buf, 2000) ) return -1;
+
+	// get coordinates of the main client area
+	GetClientRect(client, &rect);
+	
+    // initialize members of the toolinfo structure
+	ti.cbSize		= sizeof(TOOLINFO);
+	ti.uFlags		= TTF_SUBCLASS;
+	ti.hwnd			= client;
+	ti.hinst		= ghThisInstance;		// not necessary if lpszText is not a resource id
+	ti.uId			= uid;
+	ti.lpszText		= buf;
+
+	// Tooltip control will cover the whole window
+	ti.rect.left	= rect.left;    
+	ti.rect.top		= rect.top;
+	ti.rect.right	= rect.right;
+	ti.rect.bottom	= rect.bottom;
+	
+	// send a addtool message to the tooltip control window
+	SendMessage(tooltip, TTM_ADDTOOL, 0, (LPARAM) (LPTOOLINFO) &ti);	
+	return uid++;
+} 
+
+// create a tooltip control over the entire window area - bastel
+HWND CreateTooltip(HWND hwnd)
+{
+    // initialize common controls
+	INITCOMMONCONTROLSEX	iccex;		// struct specifying control classes to register
+    iccex.dwICC		= ICC_WIN95_CLASSES;
+    iccex.dwSize	= sizeof(INITCOMMONCONTROLSEX);
+    InitCommonControlsEx(&iccex);
+
+
+	HINSTANCE	ghThisInstance=(HINSTANCE)GetWindowLong(hwnd, GWL_HINSTANCE);
+    HWND		hwndTT;					// handle to the tooltip control
+
+    // create a tooltip window
+	hwndTT = CreateWindowEx(WS_EX_TOPMOST, TOOLTIPS_CLASS, NULL, WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP,
+							CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+							hwnd, NULL, ghThisInstance, NULL);
+	
+	SetWindowPos(hwndTT, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+
+	// set some timeouts so tooltips appear fast and stay long (32767 seems to be a limit here)
+	SendMessage(hwndTT, TTM_SETDELAYTIME, (WPARAM)(DWORD)TTDT_INITIAL, (LPARAM)10);
+	SendMessage(hwndTT, TTM_SETDELAYTIME, (WPARAM)(DWORD)TTDT_AUTOPOP, (LPARAM)30*1000);
+
+	return hwndTT;
+}
+
+
 static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 
   if (uMsg == WM_INITDIALOG) {
@@ -229,6 +326,21 @@ static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         SendMessage(hctlRGBMethod, CB_SETCURSEL, j, 0);
     }
 
+	// field threshold entry, using the lame combo box sorting algo - bastel
+    HWND	hctlFieldThreshold	= GetDlgItem(hwndDlg, IDC_FIELDTHRESHOLD);
+    int		fthreshold			= GetPrivateProfileInt("general", "field_threshold", FIELD_THRESHOLD, "huffyuv.ini");
+	char	temp[12]			= {0};
+	bool	dupe				= false;
+	_snprintf(temp, 11, "%3d", fthreshold);
+	SendMessage(hctlFieldThreshold, CB_LIMITTEXT, 11, 0);
+	for (int k = 0; k < sizeof(field_thresholds)/sizeof(field_thresholds[0]); k++) {
+		SendMessage(hctlFieldThreshold, CB_ADDSTRING, 0, (LPARAM)field_thresholds[k].name);
+		if ( field_thresholds[k].method==fthreshold ) dupe=true;
+	}
+	if ( !dupe) SendMessage(hctlFieldThreshold, CB_ADDSTRING, 0, (LPARAM)temp);
+	SendMessage(hctlFieldThreshold, CB_SETCURSEL, SendMessage(hctlFieldThreshold, CB_FINDSTRINGEXACT, -1, (LPARAM)temp), 0);
+
+
     CheckDlgButton(hwndDlg, IDC_RGBOUTPUT,
       GetPrivateProfileInt("debug", "rgboutput", false, "huffyuv.ini") ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwndDlg, IDC_RGBA,
@@ -237,6 +349,17 @@ static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
       GetPrivateProfileInt("debug", "decomp_swap_fields", false, "huffyuv.ini") ? BST_CHECKED : BST_UNCHECKED);
     CheckDlgButton(hwndDlg, IDC_LOG,
       GetPrivateProfileInt("debug", "log", false, "huffyuv.ini") ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(hwndDlg, IDC_FULL_SIZE_BUFFER,
+      GetPrivateProfileInt("debug", "full_size_buffer", FULL_SIZE_BUFFER, "huffyuv.ini") ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(hwndDlg, IDC_IGNORE_IFLAG,
+      GetPrivateProfileInt("general", "ignore_iflag", false, "huffyuv.ini") ? BST_CHECKED : BST_UNCHECKED);
+
+
+    // create a tooltip window and add tooltips - bastel
+	HWND hwndTip = CreateTooltip(hwndDlg);
+	for (int l=0; item2tip[l].item; l++ )
+		AddTooltip(hwndTip, GetDlgItem(hwndDlg, item2tip[l].item),	item2tip[l].tip);
+	SendMessage(hwndTip, TTM_SETMAXTIPWIDTH, 0, (LPARAM)(INT)350);	// ah well this is totally wrong but works
   }
 
   else if (uMsg == WM_COMMAND) {
@@ -261,6 +384,23 @@ static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
         (IsDlgButtonChecked(hwndDlg, IDC_SWAPFIELDS) == BST_CHECKED) ? "1" : "0", "huffyuv.ini");
       WritePrivateProfileString("debug", "log",
         (IsDlgButtonChecked(hwndDlg, IDC_LOG) == BST_CHECKED) ? "1" : "0", "huffyuv.ini");
+      WritePrivateProfileString("debug", "full_size_buffer",
+        (IsDlgButtonChecked(hwndDlg, IDC_FULL_SIZE_BUFFER) == BST_CHECKED) ? "1" : "0", "huffyuv.ini");
+      WritePrivateProfileString("general", "ignore_iflag",
+        (IsDlgButtonChecked(hwndDlg, IDC_IGNORE_IFLAG) == BST_CHECKED) ? "1" : "0", "huffyuv.ini");
+
+	  // write field threshold setting. accept only if numeric and 0 < ft <= 16384 - bastel
+	  {
+		char	temp[12]= {0};
+		char*	endp	= 0;
+		SendMessage(GetDlgItem(hwndDlg, IDC_FIELDTHRESHOLD), WM_GETTEXT, 11, (LPARAM)temp);
+		int fthreshold	= strtoul(temp, &endp, 10);
+		if ( strchr(" \t\r\n", *endp) && fthreshold>0 && fthreshold<=16384 ) {
+			// could pass old temp, but this way whitespace is removed
+			_snprintf(temp, 11, "%03d", fthreshold);		
+			WritePrivateProfileString("general", "field_threshold", temp, "huffyuv.ini");
+		}
+	  }
 
     case IDCANCEL:
       EndDialog(hwndDlg, 0);
@@ -519,16 +659,30 @@ DWORD CodecInst::CompressGetFormat(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER
 
   int real_bit_count = (intype==4) ? 32 : (compress_as_yuy2) ? 16 : 24;
 
-  *lpbiOut = *lpbiIn;
-  lpbiOut->biSize = sizeof(BITMAPINFOHEADER)+4+hufftable_length;
-  lpbiOut->biCompression = FOURCC_HFYU;
-  lpbiOut->biClrImportant = lpbiOut->biClrUsed = 0;
-  lpbiOut->biBitCount = max(24, real_bit_count);
+  //*lpbiOut = *lpbiIn;
+  memset(lpbiOut, 0, sizeof(BITMAPINFOHEADER)+4+hufftable_length);
+  lpbiOut->biSize           = sizeof(BITMAPINFOHEADER)+4+hufftable_length;
+  lpbiOut->biWidth          = lpbiIn->biWidth;
+  lpbiOut->biHeight         = lpbiIn->biHeight;
+  lpbiOut->biPlanes         = lpbiIn->biPlanes;
+  lpbiOut->biBitCount       = max(24, real_bit_count);
+  lpbiOut->biCompression    = FOURCC_HFYU;
+  lpbiOut->biSizeImage      = lpbiIn->biSizeImage;
+  //lpbiOut->biXPelsPerMeter  = 0;
+  //lpbiOut->biYPelsPerMeter  = 0;
+  //lpbiOut->biClrImportant   = 0;
+  //lpbiOut->biClrUsed        = 0;
   unsigned char* extra_data = (unsigned char*)lpbiOut + sizeof(BITMAPINFOHEADER);
+  //memset(extra_data, 0, 4+hufftable_length);
   extra_data[0] = method;
   extra_data[1] = real_bit_count;
-  extra_data[2] = 0;
-  extra_data[3] = 0;
+
+  // store in file if interlaced or not. this is compatible with huffyuv 2.2.0 (using upper nibble, lower is for reduced)
+  int ft = GetPrivateProfileInt("general", "field_threshold", FIELD_THRESHOLD, "huffyuv.ini");
+  extra_data[2] = (abs(lpbiIn->biHeight)>ft ? INTERLACED_ENCODING : PROGRESSIVE_ENCODING) << 4;
+
+  //extra_data[3] = 0;
+
   lstrcpy((char*)extra_data+4, (const char*)hufftable);
   return ICERR_OK;
 }
@@ -559,6 +713,11 @@ DWORD CodecInst::CompressBegin(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER lpb
     encode_table_owner = this;
   }
 
+  // load field threshold - bastel
+  field_threshold = GetPrivateProfileInt("general", "field_threshold", FIELD_THRESHOLD, "huffyuv.ini");
+  Msg("CompressBegin: field threshold = %d lines, field processing %s\n",
+	  field_threshold, abs(lpbiOut->biHeight)>field_threshold ? "enabled" : "disabled");
+
   // allocate buffer if compressing RGB->YUY2->HFYU
   if (outtype == -1 && (method == methodGrad || intype == 3))
     yuy2_buffer = new unsigned char[lpbiIn->biWidth * lpbiIn->biHeight * 2 + 4];
@@ -578,7 +737,12 @@ DWORD CodecInst::CompressGetSize(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER l
   // Assume 24 bpp worst-case for YUY2 input, 40 bpp for RGB.
   // The actual worst case is 43/51 bpp currently, but this is exceedingly improbable
   // (probably impossible with real captured video)
-  return lpbiIn->biWidth * lpbiIn->biHeight * ((GetBitmapType(lpbiIn) <= 2) ? 3 : 5);
+  // bastel: never say impossible. try to capture static noise with the original huffyuv and be surprised.
+  //         virtualdub has a workaround for it. avi_io not. anyway, i don't think it slows down processing.
+  //         if you think it does you can still enable the old behaviour. full buffer costs memory, though :)
+  int fullsize = GetPrivateProfileInt("debug", "full_size_buffer", FULL_SIZE_BUFFER, "huffyuv.ini");
+  return fullsize	? ((lpbiIn->biWidth * lpbiIn->biHeight * ((GetBitmapType(lpbiIn) <= 2) ? 43 : 51)) + 7) / 8
+					:	lpbiIn->biWidth * lpbiIn->biHeight * ((GetBitmapType(lpbiIn) <= 2) ? 3 : 5);
 }
 
 
@@ -610,7 +774,7 @@ DWORD CodecInst::Compress(ICCOMPRESS* icinfo, DWORD dwSize) {
     if (outtype == -1) {    // compressing to HFYU16 (4:2:2 YUV)
       int stride = icinfo->lpbiInput->biWidth * 2;
       int size = stride * icinfo->lpbiInput->biHeight;
-      if (icinfo->lpbiInput->biHeight > 288) stride *= 2;    // if image is interlaced, double stride so fields are treated separately
+      if (icinfo->lpbiInput->biHeight > field_threshold) stride *= 2;    // if image is interlaced, double stride so fields are treated separately
       const unsigned char* yuy2in = in;
 
       if (intype == 3) {    // RGB24->YUY2->HFYU16
@@ -649,7 +813,7 @@ DWORD CodecInst::Compress(ICCOMPRESS* icinfo, DWORD dwSize) {
     else {    // compressing to HFYU24 (RGB) or HFYU32 (RGBA)
       int stride = (icinfo->lpbiInput->biWidth * GetBitCount(icinfo->lpbiInput)) >> 3;
       int size = stride * icinfo->lpbiInput->biHeight;
-      if (icinfo->lpbiInput->biHeight > 288) stride *= 2;    // if image is interlaced, double stride so fields are treated separately
+      if (icinfo->lpbiInput->biHeight > field_threshold) stride *= 2;    // if image is interlaced, double stride so fields are treated separately
       const unsigned char* rgbin = in;
 
       if ((method&~flagDecorrelate) == methodGrad) {
@@ -744,6 +908,10 @@ static bool CanDecompress(LPBITMAPINFOHEADER lpbiIn) {
 static bool CanDecompress(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER lpbiOut) {
   if (!lpbiOut)
     return CanDecompress(lpbiIn);
+
+  // ccesp sets negative output height with YUY2 - a request for a top-down bitmap.
+  // but what it really wants is a bottom-up bitmap. this is fine with huffyuv, so we change it. - bastel
+  lpbiOut->biHeight = IgnoreTopDown() ? abs(lpbiOut->biHeight) : lpbiOut->biHeight;
 
   // must be 1:1 (no stretching)
   if (lpbiOut && (lpbiOut->biWidth != lpbiIn->biWidth || lpbiOut->biHeight != lpbiIn->biHeight))
@@ -882,6 +1050,13 @@ DWORD CodecInst::DecompressBegin(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER l
   if (!CanDecompress(lpbiIn, lpbiOut))
     return ICERR_BADFORMAT;
 
+  // ccesp keeps the in CanDecompress() overwritten output height atm,
+  // so we are gonna have postive height in CodecInst::Decompress().
+  // but to be sure it is stored in the instance here and accessed in CodecInst::Decompress() - bastel
+  ignoretopdown = IgnoreTopDown();
+  Msg("DecompressBegin: Top-Down output requests are %s.\n",
+	  ignoretopdown ? "converted to bottum-up" : "processed normal");
+
   decompressing = true;
 
   int intype = GetBitmapType(lpbiIn);
@@ -892,6 +1067,17 @@ DWORD CodecInst::DecompressBegin(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER l
     InitializeDecodeTables(GetEmbeddedHuffmanTable(lpbiIn));
     decode_table_owner = this;
   }
+
+  // load field threshold and decide if interlaced or progressive processing
+  field_threshold     = GetPrivateProfileInt("general", "field_threshold", FIELD_THRESHOLD, "huffyuv.ini");
+  ignoreinterlaceflag = !!GetPrivateProfileInt("general", "ignore_iflag", IGNORE_IFLAG, "huffyuv.ini");
+  isinterlaced        = abs(lpbiIn->biHeight) > field_threshold;
+  if ( !ignoreinterlaceflag ) {
+	  unsigned char iflag = (*((unsigned char*)lpbiIn + sizeof(BITMAPINFOHEADER) + 2) >> 4) & 0xf;
+	  isinterlaced = iflag==INTERLACED_ENCODING ? true : iflag==PROGRESSIVE_ENCODING ? false : isinterlaced;
+  }
+  Msg("DecompressBegin: field threshold = %d lines, field processing %s\n", field_threshold,
+	  isinterlaced ? "enabled" : "disabled");
 
   // allocate buffer if decompressing HFYU->YUY2->RGB
   if (intype == -1 && outtype >= 3)
@@ -952,6 +1138,10 @@ DWORD CodecInst::Decompress(ICDECOMPRESS* icinfo, DWORD dwSize) {
       return retval;
   }
 
+  // we change a top-down output request to a bottom-up one here. - bastel
+  // (imho it should be possible to always do this, this code should never be reached with a negative height)
+  if ( ignoretopdown ) icinfo->lpbiOutput->biHeight = abs(icinfo->lpbiOutput->biHeight);
+
   icinfo->lpbiOutput->biSizeImage = (icinfo->lpbiOutput->biWidth * icinfo->lpbiOutput->biHeight * icinfo->lpbiOutput->biBitCount) >> 3;
 
   int intype = GetBitmapType(icinfo->lpbiInput);
@@ -970,7 +1160,8 @@ DWORD CodecInst::Decompress(ICDECOMPRESS* icinfo, DWORD dwSize) {
     if (intype == -1) {   // decompressing HFYU16
       int stride = icinfo->lpbiOutput->biWidth * 2;
       const int size = stride * icinfo->lpbiOutput->biHeight;
-      if (icinfo->lpbiOutput->biHeight > 288) stride *= 2;      // if image is interlaced, double stride so fields are treated separately
+      // if image is interlaced, double stride so fields are treated separately
+      if ( isinterlaced ) stride *= 2;
 
       unsigned char* const yuy2 = outtype>1 ? decompress_yuy2_buffer : out;
 
@@ -990,7 +1181,8 @@ DWORD CodecInst::Decompress(ICDECOMPRESS* icinfo, DWORD dwSize) {
     else {   // decompressing HFYU24/HFYU32
       int stride = (icinfo->lpbiOutput->biWidth * icinfo->lpbiOutput->biBitCount) >> 3;
       const int size = stride * icinfo->lpbiOutput->biHeight;
-      if (icinfo->lpbiOutput->biHeight > 288) stride *= 2;      // if image is interlaced, double stride so fields are treated separately
+      // if image is interlaced, double stride so fields are treated separately
+	  if ( isinterlaced ) stride *= 2;
       if (intype == -2) {   // HFYU24->RGB
         if (outtype == 4) {
           if (method == methodLeft || method == methodOld)
@@ -1017,7 +1209,7 @@ DWORD CodecInst::Decompress(ICDECOMPRESS* icinfo, DWORD dwSize) {
         mmx_RowAccum(out, out+size, stride);
     }
 
-    if (swapfields && icinfo->lpbiOutput->biHeight > 288)
+    if (swapfields && isinterlaced )
       asm_SwapFields(out, out+icinfo->lpbiOutput->biSizeImage,
        (icinfo->lpbiOutput->biWidth * icinfo->lpbiOutput->biBitCount) >> 3);
 

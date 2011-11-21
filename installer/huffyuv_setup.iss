@@ -24,6 +24,7 @@
 
 
 #define HUFFYUV_VERSION  "2.1.1"
+#define CCESP_VERSION    "0.2.5"
 #define PUBLISHER        "Ben Rudiak-Gould et all"
 #define WEBPAGE          "http://code.google.com/p/huffyuv/"
 
@@ -62,7 +63,11 @@ OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}_WDK
 #else
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}
 #endif
+#ifdef CCESP_VERSION
+UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}/CCESP {#CCESP_VERSION}]
+#else
 UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}]
+#endif
 UninstallFilesDir={app}
 MinVersion=0,5.1
 SolidCompression=yes

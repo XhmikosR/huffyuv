@@ -21,6 +21,12 @@ static const DWORD FOURCC_YUY2 = mmioFOURCC('Y','U','Y','2');   // uncompressed 
 static const DWORD FOURCC_UYVY = mmioFOURCC('U','Y','V','Y');   // uncompressed UYVY
 static const DWORD FOURCC_VYUY = mmioFOURCC('V','Y','U','Y');   // an alias for YUY2 used by ATI cards
 
+static const int	FIELD_THRESHOLD      = 288;					// old field threshold used by huffyuv
+static const int	FULL_SIZE_BUFFER     = 0;					// use worst case scenario buffer by default?
+static const int    IGNORE_IFLAG         = 0;
+static const unsigned char PROGRESSIVE_ENCODING = 0x2;
+static const unsigned char INTERLACED_ENCODING  = 0x1;
+
 
 extern HMODULE hmoduleHuffyuv;
 
@@ -34,9 +40,14 @@ struct CodecInst {
   unsigned char* decompress_yuy2_buffer;
   bool swapfields;
   bool decompressing;
+  bool ignoretopdown;		// ignore top-down output requests and change them into bottom-up ones
+  int  field_threshold;		// highest number of lines that will not trigger fieldmode	
+  bool ignoreinterlaceflag; // ignore interlace flag on decompression?
+  bool isinterlaced;		// indicator during decompression (and compression?)
 
   // methods
-  CodecInst() : yuy2_buffer(0), median_buffer(0), rgb_buffer(0), decompress_yuy2_buffer(0), decompressing(false) {}
+  CodecInst() : yuy2_buffer(0), median_buffer(0), rgb_buffer(0), decompress_yuy2_buffer(0), decompressing(false),
+				ignoretopdown(false), field_threshold(FIELD_THRESHOLD), ignoreinterlaceflag(false), isinterlaced(false) {}
 
   BOOL QueryAbout();
   DWORD About(HWND hwnd);
