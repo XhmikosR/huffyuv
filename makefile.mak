@@ -113,4 +113,5 @@ $(OBJDIR)\tables.obj: \
 $(OBJDIR)\huffyuv.res: \
     $(SRC)\huffyuv.rc \
     $(SRC)\huffyuv.def \
+    $(SRC)\huffyuv.dll.manifest \
     $(SRC)\resource.h
