@@ -34,8 +34,8 @@ ML = ml.exe
 RC = rc.exe
 
 
-SRC       = .
-BINDIR    = WDK
+SRC       = src
+BINDIR    = $(SRC)\WDK
 OBJDIR    = $(BINDIR)\obj
 EXE       = $(BINDIR)\huffyuv.dll
 
@@ -44,7 +44,7 @@ DEFINES   = /D "_WINDOWS" /D "NDEBUG" /D "WIN32" /D "_WIN32_WINNT=0x0500"
 CPPFLAGS  = /nologo /c /Fo"$(OBJDIR)/" /W3 /EHsc /MD /O2 /GL /MP /arch:SSE $(DEFINES)
 LIBS      = kernel32.lib user32.lib shell32.lib winmm.lib msvcrt_win2000.obj
 LDFLAGS   = /NOLOGO /WX /INCREMENTAL:NO /RELEASE /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS,5.0 \
-            /LARGEADDRESSAWARE /DLL /MACHINE:X86 /LTCG /DEF:huffyuv.def
+            /LARGEADDRESSAWARE /DLL /MACHINE:X86 /LTCG /DEF:$(SRC)\huffyuv.def
 MLFLAGS   = /c /nologo /Zi /Fo"$(OBJDIR)/" /W3
 RFLAGS    = /l 0x0409 /d "WIN32" /d "NDEBUG"
 

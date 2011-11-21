@@ -1,28 +1,34 @@
 @ECHO OFF
-rem ******************************************************************************
+rem ***************************************************************************
 rem *
 rem * huffyuv
 rem *
-rem * build_wdk.bat
-rem *   Batch file "wrapper" for makefile.mak, used to build with WDK
+rem * build.bat
+rem *   Batch file used to build huffyuv with MSVC2010
 rem *
-rem * Distributed under the terms of the GNU GPL v2 or later.
+rem *  Copyright (C) 2011 XhmikosR, http://code.google.com/p/huffyuv/
 rem *
-rem *                                       (c) XhmikosR 2011
-rem *                                       http://code.google.com/p/notepad2-mod/
+rem *  This program is free software: you can redistribute it and/or modify
+rem *  it under the terms of the GNU General Public License as published by
+rem *  the Free Software Foundation, either version 3 of the License, or
+rem *  (at your option) any later version.
 rem *
-rem ******************************************************************************
+rem *  This program is distributed in the hope that it will be useful,
+rem *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+rem *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+rem *  GNU General Public License for more details.
+rem *
+rem *  You should have received a copy of the GNU General Public License
+rem *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+rem *
+rem ***************************************************************************
 
 SETLOCAL ENABLEEXTENSIONS
 CD /D %~dp0
 
-SET PROJECT=huffyuv
-
-rem Set the WDK directory
-IF NOT DEFINED WDKBASEDIR SET "WDKBASEDIR=C:\WinDDK\7600.16385.1"
-
 rem Check the building environment
-IF NOT EXIST "%WDKBASEDIR%" CALL :SUBMSG "ERROR" "Specify your WDK directory!"
+IF NOT DEFINED VS100COMNTOOLS CALL :SUBMSG "ERROR" "Visual Studio 2010 NOT FOUND!"
+
 
 rem Check for the help switches
 IF /I "%~1"=="help"   GOTO SHOWHELP
@@ -74,27 +80,24 @@ IF "%~2" == "" (
 
 
 :START
-SET "INCLUDE=%WDKBASEDIR%\inc\api;%WDKBASEDIR%\inc\api\crt\stl60;%WDKBASEDIR%\inc\crt;%WDKBASEDIR%\inc\ddk"
-SET "LIB=%WDKBASEDIR%\lib\crt\i386;%WDKBASEDIR%\lib\win7\i386"
-SET "PATH=%WDKBASEDIR%\bin\x86;%WDKBASEDIR%\bin\x86\x86;%PATH%"
+CALL "%VS100COMNTOOLS%vsvars32.bat"
 
-TITLE Building %PROJECT% x86 with WDK...
+CALL :SUBMSVC %BUILDTYPE% Release Win32
+
+CALL "installer\build_installer.bat"
+
+
+ :END
 ECHO. & ECHO.
-
-CALL :SUBNMAKE
-
-CALL "installer\build_installer.bat" WDK_BUILD
-
-
-:END
-TITLE Building %PROJECT% with WDK - Finished!
 ENDLOCAL
 PAUSE
 EXIT /B
 
 
-:SUBNMAKE
-nmake /NOLOGO /f "makefile.mak" %BUILDTYPE% %1
+:SUBMSVC
+ECHO.
+TITLE Building huffyuv - %~1 "%~2|%~3"...
+devenv /nologo huffyuv.sln /%~1 "%~2|%~3"
 IF %ERRORLEVEL% NEQ 0 CALL :SUBMSG "ERROR" "Compilation failed!"
 EXIT /B
 
@@ -102,20 +105,18 @@ EXIT /B
 :SHOWHELP
 TITLE "%~nx0 %1"
 ECHO. & ECHO.
-ECHO Usage:   %~nx0 [Clean^|Build^|Rebuild] [x86]
+ECHO Usage:  %~nx0 [Clean^|Build^|Rebuild] [x86]
 ECHO.
-ECHO Notes:   You can also prefix the commands with "-", "--" or "/".
-ECHO          The arguments are not case sensitive.
+ECHO Notes:  You can also prefix the commands with "-", "--" or "/".
+ECHO         The arguments are not case sensitive.
 ECHO. & ECHO.
-ECHO Edit "%~nx0" and set your WDK directory.
-ECHO You shouldn't need to make any changes other than that.
-ECHO. & ECHO.
-ECHO Executing "%~nx0" will use the defaults: "%~nx0 build x86"
+ECHO Executing "%~nx0" will use the defaults: "%~nx0 build all"
 ECHO.
-ECHO If you skip the second argument the default one will be used. Example:
-ECHO "%~nx0 rebuild" is the same as "%~nx0 rebuild x86"
+ECHO If you skip the second argument the default one will be used.
+ECHO Examples:
+ECHO "%~nx0 rebuild" is the same as "%~nx0 rebuild all"
 ECHO.
-ECHO WARNING: "%~nx0 x86" won't work.
+ECHO WARNING: "%~nx0 x86" or "%~nx0 x64" won't work.
 ECHO.
 ENDLOCAL
 EXIT /B
@@ -125,7 +126,7 @@ EXIT /B
 ECHO. & ECHO ______________________________
 ECHO [%~1] %~2
 ECHO ______________________________ & ECHO.
-IF /I "%~1"=="ERROR" (
+IF /I "%~1" == "ERROR" (
   PAUSE
   EXIT
 ) ELSE (
