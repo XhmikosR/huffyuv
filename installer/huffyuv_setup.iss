@@ -101,7 +101,8 @@ FileName: {win}\system.ini; Section: drivers32; Key: VIDC.HFYU; String: huffyuv.
 
 
 [Run]
-Filename: {#WEBPAGE}; Description: Visit Webpage; Flags: nowait postinstall skipifsilent shellexec unchecked
+Filename: {sys}\rundll32.exe; Description: Configure Huffyuv; Parameters: """{sys}\huffyuv.dll"",Configure"; WorkingDir: {sys}; Flags: postinstall nowait skipifsilent unchecked
+Filename: {#WEBPAGE};         Description: Visit Webpage;                                                                       Flags: postinstall nowait skipifsilent shellexec unchecked
 
 
 [Code]

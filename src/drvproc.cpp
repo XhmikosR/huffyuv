@@ -205,3 +205,21 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD, LPVOID) {
   hmoduleHuffyuv = (HMODULE) hinstDLL;
   return TRUE;
 }
+
+extern "C" {
+void WINAPI Configure(HWND hwnd, HINSTANCE hinst, LPTSTR lpCmdLine, int nCmdShow)
+{
+    LRESULT dwDriverId;
+
+    dwDriverId = (LRESULT) DriverProc(0, 0, DRV_OPEN, 0, 0);
+    if (dwDriverId != (LRESULT)NULL)
+    {
+        if (lstrcmpi(lpCmdLine, "about")==0) {
+            DriverProc(dwDriverId, 0, ICM_ABOUT, (LPARAM)GetDesktopWindow(), 0);
+        }else{
+            DriverProc(dwDriverId, 0, ICM_CONFIGURE, (LPARAM)GetDesktopWindow(), 0);
+        }
+        DriverProc(dwDriverId, 0, DRV_CLOSE, 0, 0);
+    }
+}
+}
