@@ -1,4 +1,4 @@
-;* Huffyuv - Installer script
+;*  Huffyuv - Installer script
 ;*
 ;*  Copyright (C) 2011 XhmikosR, http://code.google.com/p/huffyuv/
 ;*
@@ -97,7 +97,7 @@ Root: HKLM;   Subkey: SOFTWARE\Microsoft\Windows NT\CurrentVersion\Drivers32;   
 
 
 [INI]
-FileName: {win}\system.ini; Section: drivers32; Key: VIDC.HFYU; String: huffyuv.dll; Flags: uninsdeleteentry 
+FileName: {win}\system.ini; Section: drivers32; Key: VIDC.HFYU; String: huffyuv.dll; Flags: uninsdeleteentry
 
 
 [Run]
@@ -144,15 +144,11 @@ end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  if IsUpgrade() then begin
-    Case PageID of
-      // Hide the license page
-      wpInfoBefore: Result := True;
-      wpReady: Result := True;
-    else
-      Result := False;
-    end;
-  end;
+  // Hide the InfoBefore page
+  if IsUpgrade() and (PageID = wpInfoBefore) then
+    Result := True
+  else
+    Result := False
 end;
 
 
