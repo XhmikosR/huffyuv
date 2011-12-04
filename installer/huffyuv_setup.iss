@@ -35,6 +35,13 @@
 #endif
 
 
+#ifdef WDK_BUILD
+  #define bindir "..\src\WDK"
+#else
+  #define bindir "..\src\Release"
+#endif
+
+
 [Setup]
 AppID=Huffyuv
 AppName=Huffyuv
@@ -60,16 +67,16 @@ InfoBeforeFile=..\copying.txt
 OutputDir=.
 #ifdef WDK_BUILD
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}_WDK
+MinVersion=0,5.0
 #else
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}
+MinVersion=0,5.01SP3
 #endif
 #ifdef CCESP_VERSION
 UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}/CCESP {#CCESP_VERSION}]
 #else
 UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}]
 #endif
-UninstallFilesDir={app}
-MinVersion=0,5.1
 SolidCompression=yes
 Compression=lzma/ultra64
 InternalCompressLevel=max
@@ -79,13 +86,9 @@ DisableReadyPage=yes
 
 
 [Files]
-#ifdef WDK_BUILD
-Source: ..\src\WDK\huffyuv.dll;     DestDir: {sys}; Flags: sharedfile ignoreversion uninsnosharedfileprompt restartreplace
-#else
-Source: ..\src\Release\huffyuv.dll; DestDir: {sys}; Flags: sharedfile ignoreversion uninsnosharedfileprompt restartreplace
-#endif
-Source: ..\copying.txt;             DestDir: {app}; Flags: ignoreversion restartreplace
-Source: ..\readme.txt;              DestDir: {app}; Flags: ignoreversion restartreplace
+Source: {#bindir}\huffyuv.dll; DestDir: {sys}; Flags: sharedfile ignoreversion uninsnosharedfileprompt restartreplace
+Source: ..\copying.txt;        DestDir: {app}; Flags: ignoreversion restartreplace
+Source: ..\readme.txt;         DestDir: {app}; Flags: ignoreversion restartreplace
 
 
 [Registry]
@@ -116,29 +119,24 @@ end;
 
 
 function IsOldBuildInstalled(): Boolean;
+var
+  rootkey: Integer;
 begin
-  if IsWin64 then begin
-    if RegKeyExists(HKLM64, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv') and
-    FileExists(ExpandConstant('{win}\inf\huffyuv.inf')) then begin
-      Log('Custom Code: The old build is installed');
-      Result := True;
-    end
-    else begin
-      Log('Custom Code: The old build is NOT installed');
-      Result := False;
-    end;
+  if IsWin64 then
+    rootkey := HKLM64
+  else
+    rootkey := HKLM;
+
+  if RegKeyExists(rootkey, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv') and
+  FileExists(ExpandConstant('{win}\inf\huffyuv.inf')) then begin
+    Log('Custom Code: The old build is installed');
+    Result := True;
   end
   else begin
-    if RegKeyExists(HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Huffyuv') and
-    FileExists(ExpandConstant('{win}\inf\huffyuv.inf')) then begin
-      Log('Custom Code: The old build is installed');
-      Result := True;
-    end
-    else begin
-      Log('Custom Code: The old build is NOT installed');
-      Result := False;
-    end;
+    Log('Custom Code: The old build is NOT installed');
+    Result := False;
   end;
+
 end;
 
 
@@ -165,16 +163,15 @@ begin
   // default return value
   Log('Custom Code: Will try to uninstall the old build');
   Result := 0;
-  if IsWin64 then begin
+  if IsWin64 then
     bOldState := EnableFsRedirection(False);
-  end;
+
   if Exec('rundll32.exe', ExpandConstant('setupapi.dll,InstallHinfSection DefaultUninstall 132 {win}\inf\huffyuv.inf'), '', SW_HIDE, ewWaitUntilTerminated, iResultCode) then begin
     Result := 2;
     Sleep(500);
     Log('Custom Code: The old build was successfully uninstalled');
-    if IsWin64 then begin
+    if IsWin64 then
       EnableFsRedirection(bOldState);
-    end;
   end
   else begin
     Result := 1;
@@ -198,9 +195,8 @@ end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
-  if (CurStep = ssInstall) and IsOldBuildInstalled() then begin
+  if (CurStep = ssInstall) and IsOldBuildInstalled() then
     UninstallOldVersion();
-  end;
 end;
 
 
