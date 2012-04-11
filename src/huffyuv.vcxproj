@@ -56,6 +56,7 @@
       <PreprocessorDefinitions>NDEBUG;WIN32;_WINDOWS;_USRDLL;HUFFYUV_EXPORTS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions</EnableEnhancedInstructionSet>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>true</OmitFramePointers>
     </ClCompile>
     <ResourceCompile>
       <Culture>0x0409</Culture>

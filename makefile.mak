@@ -3,7 +3,7 @@
 #*  makefile.mak
 #*    makefile for building with WDK
 #*
-#*  Copyright (C) 2011 XhmikosR
+#*  Copyright (C) 2011-2012 XhmikosR
 #*
 #*  This program is free software: you can redistribute it and/or modify
 #*  it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ EXE       = $(BINDIR)\huffyuv.dll
 
 
 DEFINES   = /D "_WINDOWS" /D "NDEBUG" /D "WIN32" /D "_WIN32_WINNT=0x0500"
-CPPFLAGS  = /nologo /c /Fo"$(OBJDIR)/" /W3 /EHsc /MD /O2 /GL /MP /arch:SSE $(DEFINES)
+CPPFLAGS  = /nologo /c /Fo"$(OBJDIR)/" /W3 /EHsc /MD /O2 /Oy /GL /MP /arch:SSE $(DEFINES)
 LIBS      = kernel32.lib user32.lib shell32.lib winmm.lib comctl32.lib msvcrt_win2000.obj
 LDFLAGS   = /NOLOGO /WX /INCREMENTAL:NO /RELEASE /OPT:REF /OPT:ICF /SUBSYSTEM:WINDOWS,5.0 \
             /LARGEADDRESSAWARE /DLL /MACHINE:X86 /LTCG /DEF:$(SRC)\huffyuv.def
