@@ -18,7 +18,7 @@
 ;**************************************************************************
 
 ; Requirements:
-; Inno Setup v5.4.2(+): http://www.jrsoftware.org/isdl.php
+; Inno Setup: http://www.jrsoftware.org/isdl.php
 
 ; $Id$
 
@@ -30,8 +30,8 @@
 
 ;#define WDK_BUILD
 
-#if VER < 0x05040200
-  #error Update your Inno Setup version
+#if VER < EncodeVer(5,5,0)
+  #error Update your Inno Setup version (5.5.0 or newer)
 #endif
 
 
@@ -67,10 +67,10 @@ InfoBeforeFile=..\copying.txt
 OutputDir=.
 #ifdef WDK_BUILD
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}_WDK
-MinVersion=0,5.0
+MinVersion=5.0
 #else
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}
-MinVersion=0,5.01SP3
+MinVersion=5.01SP3
 #endif
 #ifdef CCESP_VERSION
 UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}/CCESP {#CCESP_VERSION}]
