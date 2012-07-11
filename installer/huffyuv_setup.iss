@@ -30,8 +30,8 @@
 
 ;#define WDK_BUILD
 
-#if VER < EncodeVer(5,5,0)
-  #error Update your Inno Setup version (5.5.0 or newer)
+#if VER < EncodeVer(5,5,1)
+  #error Update your Inno Setup version (5.5.1 or newer)
 #endif
 
 
