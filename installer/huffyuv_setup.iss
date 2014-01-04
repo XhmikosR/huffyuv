@@ -1,6 +1,6 @@
 ;*  Huffyuv - Installer script
 ;*
-;*  Copyright (C) 2011 XhmikosR, http://code.google.com/p/huffyuv/
+;*  Copyright (C) 2011, 2014 XhmikosR, http://code.google.com/p/huffyuv/
 ;*
 ;*  This program is free software: you can redistribute it and/or modify
 ;*  it under the terms of the GNU General Public License as published by
@@ -28,18 +28,11 @@
 #define PUBLISHER        "Ben Rudiak-Gould et all"
 #define WEBPAGE          "http://code.google.com/p/huffyuv/"
 
-;#define WDK_BUILD
-
 #if VER < EncodeVer(5,5,1)
   #error Update your Inno Setup version (5.5.1 or newer)
 #endif
 
-
-#ifdef WDK_BUILD
-  #define bindir "..\src\WDK"
-#else
-  #define bindir "..\src\Release"
-#endif
+#define bindir "..\src\Release"
 
 
 [Setup]
@@ -65,13 +58,8 @@ DefaultDirName={pf}\Huffyuv
 AppReadmeFile={app}\readme.txt
 InfoBeforeFile=..\copying.txt
 OutputDir=.
-#ifdef WDK_BUILD
-OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}_WDK
-MinVersion=5.0
-#else
 OutputBaseFilename=HuffyuvSetup_{#HUFFYUV_VERSION}
 MinVersion=5.01SP3
-#endif
 #ifdef CCESP_VERSION
 UninstallDisplayName=Huffyuv [{#HUFFYUV_VERSION}/CCESP {#CCESP_VERSION}]
 #else
