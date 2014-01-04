@@ -47,8 +47,6 @@
     <CustomBuild Include="huffyuv.def" />
   </ItemGroup>
   <ItemGroup>
-    <Manifest Include="huffyuv.dll.manifest">
-      <Filter>Resource Files</Filter>
-    </Manifest>
+    <Manifest Include="huffyuv.dll.manifest" />
   </ItemGroup>
 </Project>
