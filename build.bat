@@ -4,9 +4,9 @@ rem *
 rem * huffyuv
 rem *
 rem * build.bat
-rem *   Batch file used to build huffyuv with MSVC2010
+rem *   Batch file used to build huffyuv with MSVC2013
 rem *
-rem *  Copyright (C) 2011 XhmikosR, http://code.google.com/p/huffyuv/
+rem *  Copyright (C) 2011, 2014 XhmikosR, http://code.google.com/p/huffyuv/
 rem *
 rem *  This program is free software: you can redistribute it and/or modify
 rem *  it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ SETLOCAL ENABLEEXTENSIONS
 CD /D %~dp0
 
 rem Check the building environment
-IF NOT DEFINED VS100COMNTOOLS CALL :SUBMSG "ERROR" "Visual Studio 2010 NOT FOUND!"
+IF NOT DEFINED VS120COMNTOOLS CALL :SUBMSG "ERROR" "Visual Studio 2013 NOT FOUND!"
 
 
 rem Check for the help switches
@@ -80,7 +80,7 @@ IF "%~2" == "" (
 
 
 :START
-CALL "%VS100COMNTOOLS%vsvars32.bat"
+CALL "%VS120COMNTOOLS%vsvars32.bat"
 
 CALL :SUBMSVC %BUILDTYPE% Release Win32
 
