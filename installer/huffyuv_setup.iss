@@ -28,8 +28,8 @@
 #define PUBLISHER        "Ben Rudiak-Gould et all"
 #define WEBPAGE          "http://code.google.com/p/huffyuv/"
 
-#if VER < EncodeVer(5,5,1)
-  #error Update your Inno Setup version (5.5.1 or newer)
+#if VER < EncodeVer(5,5,4)
+  #error Update your Inno Setup version (5.5.4 or newer)
 #endif
 
 #define bindir "..\src\Release"
