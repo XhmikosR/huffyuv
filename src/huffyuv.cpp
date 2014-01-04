@@ -331,7 +331,7 @@ static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
     int		fthreshold			= GetPrivateProfileInt("general", "field_threshold", FIELD_THRESHOLD, "huffyuv.ini");
 	char	temp[12]			= {0};
 	bool	dupe				= false;
-	_snprintf(temp, 11, "%3d", fthreshold);
+	_snprintf_s(temp, 11, "%3d", fthreshold);
 	SendMessage(hctlFieldThreshold, CB_LIMITTEXT, 11, 0);
 	for (int k = 0; k < sizeof(field_thresholds)/sizeof(field_thresholds[0]); k++) {
 		SendMessage(hctlFieldThreshold, CB_ADDSTRING, 0, (LPARAM)field_thresholds[k].name);
@@ -397,7 +397,7 @@ static BOOL CALLBACK ConfigureDialogProc(HWND hwndDlg, UINT uMsg, WPARAM wParam,
 		int fthreshold	= strtoul(temp, &endp, 10);
 		if ( strchr(" \t\r\n", *endp) && fthreshold>0 && fthreshold<=16384 ) {
 			// could pass old temp, but this way whitespace is removed
-			_snprintf(temp, 11, "%03d", fthreshold);		
+			_snprintf_s(temp, 11, "%03d", fthreshold);		
 			WritePrivateProfileString("general", "field_threshold", temp, "huffyuv.ini");
 		}
 	  }
@@ -461,7 +461,7 @@ struct PrintBitmapType {
   char s[32];
   PrintBitmapType(LPBITMAPINFOHEADER lpbi) {
     if (!lpbi)
-      strcpy(s,  "(null)");
+      strcpy_s(s,  "(null)");
     else {
       *(DWORD*)s = lpbi->biCompression;
       s[4] = 0;
@@ -641,7 +641,7 @@ DWORD CodecInst::CompressGetFormat(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER
   int intype = GetBitmapType(lpbiIn);
 
   bool compress_as_yuy2 = (intype<3);
-  int method;
+  int method = 0;
   if (!compress_as_yuy2) {
     method = GetPrivateProfileInt("general", "rgbmethod", methodGrad+flagDecorrelate, "huffyuv.ini");
     if (method==methodConvertToYUY2)
@@ -674,7 +674,7 @@ DWORD CodecInst::CompressGetFormat(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEADER
   //lpbiOut->biClrUsed        = 0;
   unsigned char* extra_data = (unsigned char*)lpbiOut + sizeof(BITMAPINFOHEADER);
   //memset(extra_data, 0, 4+hufftable_length);
-  extra_data[0] = method;
+  extra_data[0] = method = { 0 };
   extra_data[1] = real_bit_count;
 
   // store in file if interlaced or not. this is compatible with huffyuv 2.2.0 (using upper nibble, lower is for reduced)
@@ -989,8 +989,8 @@ DWORD CodecInst::DecompressGetFormat(LPBITMAPINFOHEADER lpbiIn, LPBITMAPINFOHEAD
 const unsigned char* InitializeDecodeTable(const unsigned char* hufftable, unsigned char* shift, DecodeTable* decode_table) {
   unsigned add_shifted[256];
   hufftable = InitializeShiftAddTables(hufftable, shift, add_shifted);
-  char code_lengths[256];
-  char code_firstbits[256];
+  char code_lengths[256] = { 0 };
+  char code_firstbits[256] = { 0 };
   char table_lengths[32];
   memset(table_lengths,-1,32);
   int all_zero_code=-1;
