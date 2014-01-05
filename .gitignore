@@ -1,0 +1,7 @@
+/*.opensdf
+/*.sdf
+/*.suo
+/installer/*.exe
+/src/*.aps
+/src/Debug
+/src/Release
